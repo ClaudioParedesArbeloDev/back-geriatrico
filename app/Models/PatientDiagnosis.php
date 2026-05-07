@@ -11,26 +11,23 @@ class PatientDiagnosis extends Model
         'patient_id',
         'user_id',
         'diagnosis',
+        'cie10_code',
+        'cie10_label',
         'notes',
-        'diagnosed_at'
+        'diagnosed_at',
     ];
 
     protected $casts = [
-        'diagnosed_at' => 'date'
+        'diagnosed_at' => 'date',
     ];
 
     public function patient(): BelongsTo
     {
-        return $this->belongsTo(
-            Patient::class
-        );
+        return $this->belongsTo(Patient::class);
     }
 
     public function professional(): BelongsTo
     {
-        return $this->belongsTo(
-            User::class,
-            'user_id'
-        );
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

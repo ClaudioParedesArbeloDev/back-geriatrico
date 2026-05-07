@@ -2,22 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Patient;
+use Illuminate\Http\Request;
 
 class PatientController extends Controller
 {
-    
     public function index(Request $request)
     {
         $query = Patient::query();
 
-    
         if ($request->filled('dni')) {
             $query->where('dni', $request->dni);
         }
 
-    
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('obra_social')) {
+            $query->where('obra_social', 'like', '%' . $request->obra_social . '%');
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -27,10 +32,11 @@ class PatientController extends Controller
             });
         }
 
-        return response()->json($query->get());
+        return response()->json(
+            $query->with(['currentBedAssignment.bed.room'])->get()
+        );
     }
 
-    
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -44,6 +50,8 @@ class PatientController extends Controller
             'mobility_status'  => 'nullable|in:normal,reduced,wheelchair,bedridden',
             'dependency_level' => 'nullable|in:low,medium,high',
             'emergency_phone'  => 'nullable|string|max:255',
+            'obra_social'      => 'nullable|string|max:255',
+            'numero_afiliado'  => 'nullable|string|max:100',
             'notes'            => 'nullable|string',
             'status'           => 'nullable|in:active,inactive,deceased',
         ]);
@@ -56,19 +64,26 @@ class PatientController extends Controller
         ], 201);
     }
 
-    
-    public function show(string $id)
+    public function show(Patient $patient)
     {
-        $patient = Patient::findOrFail($id);
-
-        return response()->json($patient);
+        return response()->json(
+            $patient->load([
+                'contacts',
+                'allergies',
+                'currentBedAssignment.bed.room',
+                'diagnoses.professional',
+                'activePrescriptions.medication',
+                'activePrescriptions.schedules',
+                'activePrescriptions.professional',
+                'studies.professional',
+                'evolutions.professional',
+                'latestVitalSigns.registeredBy',
+            ])
+        );
     }
 
-    
-    public function update(Request $request, string $id)
+    public function update(Request $request, Patient $patient)
     {
-        $patient = Patient::findOrFail($id);
-
         $validated = $request->validate([
             'first_name'       => 'sometimes|string|max:255',
             'last_name'        => 'sometimes|string|max:255',
@@ -80,6 +95,8 @@ class PatientController extends Controller
             'mobility_status'  => 'nullable|in:normal,reduced,wheelchair,bedridden',
             'dependency_level' => 'nullable|in:low,medium,high',
             'emergency_phone'  => 'nullable|string|max:255',
+            'obra_social'      => 'nullable|string|max:255',
+            'numero_afiliado'  => 'nullable|string|max:100',
             'notes'            => 'nullable|string',
             'status'           => 'nullable|in:active,inactive,deceased',
         ]);
@@ -92,10 +109,8 @@ class PatientController extends Controller
         ]);
     }
 
-    
-    public function destroy(string $id)
+    public function destroy(Patient $patient)
     {
-        $patient = Patient::findOrFail($id);
         $patient->delete();
 
         return response()->json(['message' => 'Paciente eliminado']);

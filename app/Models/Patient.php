@@ -20,6 +20,8 @@ class Patient extends Model
         'mobility_status',
         'dependency_level',
         'emergency_phone',
+        'obra_social',
+        'numero_afiliado',
         'notes',
         'status',
     ];
@@ -28,8 +30,6 @@ class Patient extends Model
         'birth_date'     => 'date',
         'admission_date' => 'date',
     ];
-
-    
 
     public function contacts(): HasMany
     {
@@ -41,16 +41,12 @@ class Patient extends Model
         return $this->hasOne(PatientContact::class)->where('is_primary', true);
     }
 
-    
-
     public function allergies(): BelongsToMany
     {
         return $this->belongsToMany(Allergy::class, 'patient_allergies')
             ->withPivot(['severity', 'reaction'])
             ->withTimestamps();
     }
-
-    
 
     public function bedAssignments(): HasMany
     {
@@ -63,8 +59,6 @@ class Patient extends Model
             ->whereNull('released_at')
             ->latest('assigned_at');
     }
-
-    
 
     public function diagnoses(): HasMany
     {
@@ -90,8 +84,6 @@ class Patient extends Model
     {
         return $this->hasMany(PatientEvolution::class);
     }
-
-   
 
     public function vitalSigns(): HasMany
     {
