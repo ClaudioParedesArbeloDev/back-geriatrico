@@ -12,13 +12,19 @@ class Medication extends Model
         'name',
         'generic_name',
         'laboratory',
-        'presentation'
+        'presentation',
+        'concentration',
+        'drug_form',
+        'contraindications',
+        'controlled',
+    ];
+
+    protected $casts = [
+        'controlled' => 'boolean',
     ];
 
     public function prescriptions(): HasMany
     {
-        return $this->hasMany(
-            MedicalPrescription::class
-        );
+        return $this->hasMany(MedicalPrescription::class);
     }
 }

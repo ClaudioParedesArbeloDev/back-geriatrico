@@ -12,25 +12,27 @@ class MedicalStudy extends Model
         'user_id',
         'study_type',
         'conclusion',
-        'performed_at'
+        'file_path',
+        'performed_at',
     ];
 
     protected $casts = [
-        'performed_at' => 'date'
+        'performed_at' => 'date',
     ];
 
     public function patient(): BelongsTo
     {
-        return $this->belongsTo(
-            Patient::class
-        );
+        return $this->belongsTo(Patient::class);
     }
 
     public function professional(): BelongsTo
     {
-        return $this->belongsTo(
-            User::class,
-            'user_id'
-        );
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    
+    public function hasFile(): bool
+    {
+        return ! is_null($this->file_path);
     }
 }

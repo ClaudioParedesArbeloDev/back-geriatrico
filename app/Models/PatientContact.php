@@ -15,13 +15,16 @@ class PatientContact extends Model
         'relationship',
         'phone',
         'email',
-        'address'
+        'address',
+        'is_primary',
+    ];
+
+    protected $casts = [
+        'is_primary' => 'boolean',
     ];
 
     public function patient(): BelongsTo
     {
-        return $this->belongsTo(
-            Patient::class
-        );
+        return $this->belongsTo(Patient::class);
     }
 }

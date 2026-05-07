@@ -6,31 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    
     public function up(): void
     {
-        Schema::create('patient_evolutions', function (Blueprint $table) {
+        Schema::create('prescription_schedules', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('patient_id')
+            $table->foreignId('medical_prescription_id')
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->foreignId('user_id')
-                ->constrained()
-                ->cascadeOnDelete();
+            
+            $table->time('scheduled_time');
 
-            $table->text('evolution');
-
-            $table->timestamp('recorded_at');
+            
+            $table->string('label')->nullable();
 
             $table->timestamps();
         });
     }
 
-   
     public function down(): void
     {
-        Schema::dropIfExists('patient_evolutions');
+        Schema::dropIfExists('prescription_schedules');
     }
 };

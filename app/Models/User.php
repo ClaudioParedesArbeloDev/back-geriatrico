@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -32,69 +32,70 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
+    
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
-            'birth_date' => 'date',
-            'hire_date' => 'date',
-            'is_active' => 'boolean',
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'birth_date'         => 'date',
+            'hire_date'          => 'date',
+            'is_active'          => 'boolean',
+            'email_verified_at'  => 'datetime',
+            'password'           => 'hashed',
         ];
     }
 
-    public function roles()
+    // -------------------------------------------------------
+    // Roles y especialidades
+    // -------------------------------------------------------
+
+    public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class);
     }
 
     public function hasRole(string $roleName): bool
     {
-        return $this->roles()
-            ->where('name', $roleName)
-            ->exists();
+        return $this->roles()->where('name', $roleName)->exists();
+    }
+
+    public function hasAnyRole(array $roleNames): bool
+    {
+        return $this->roles()->whereIn('name', $roleNames)->exists();
     }
 
     public function specialties(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Specialty::class
-        )->withTimestamps();
+        return $this->belongsToMany(Specialty::class)->withTimestamps();
     }
 
-    public function diagnoses()
+    // -------------------------------------------------------
+    // Acciones clínicas del profesional
+    // -------------------------------------------------------
+
+    public function diagnoses(): HasMany
     {
-        return $this->hasMany(
-            PatientDiagnosis::class
-        );
+        return $this->hasMany(PatientDiagnosis::class);
     }
 
-    public function studies()
+    public function studies(): HasMany
     {
-        return $this->hasMany(
-            MedicalStudy::class
-        );
+        return $this->hasMany(MedicalStudy::class);
     }
 
-    public function evolutions()
+    public function evolutions(): HasMany
     {
-        return $this->hasMany(
-            PatientEvolution::class
-        );
+        return $this->hasMany(PatientEvolution::class);
     }
 
-    public function prescriptions()
+    public function prescriptions(): HasMany
     {
-        return $this->hasMany(
-            MedicalPrescription::class
-        );
+        return $this->hasMany(MedicalPrescription::class);
+    }
+
+    public function vitalSigns(): HasMany
+    {
+        return $this->hasMany(VitalSign::class);
     }
 }
