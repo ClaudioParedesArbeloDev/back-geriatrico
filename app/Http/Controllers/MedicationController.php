@@ -51,7 +51,6 @@ class MedicationController extends Controller
 
     public function show(Medication $medication)
     {
-        // Incluye las prescripciones activas para saber quién lo está tomando
         return response()->json(
             $medication->load(['prescriptions.patient'])
         );

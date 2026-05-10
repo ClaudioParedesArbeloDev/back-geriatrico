@@ -1,50 +1,102 @@
 <?php
 
+use App\Models\Bed;
+use App\Models\Medication;
+use App\Models\Patient;
+use App\Models\Role;
+use App\Models\Room;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-/*
-|--------------------------------------------------------------------------
-| Test Case
-|--------------------------------------------------------------------------
-|
-| The closure you provide to your test functions is always bound to a specific PHPUnit test
-| case class. By default, that class is "PHPUnit\Framework\TestCase". Of course, you may
-| need to change it using the "pest()" function to bind different classes or traits.
-|
-*/
-
 pest()->extend(TestCase::class)
- // ->use(RefreshDatabase::class)
+    ->use(RefreshDatabase::class)
     ->in('Feature');
 
-/*
-|--------------------------------------------------------------------------
-| Expectations
-|--------------------------------------------------------------------------
-|
-| When you're writing tests, you often need to check that values meet certain conditions. The
-| "expect()" function gives you access to a set of "expectations" methods that you can use
-| to assert different things. Of course, you may extend the Expectation API at any time.
-|
-*/
+// -----------------------------------------------------------------------
+// Helpers globales disponibles en todos los tests
+// -----------------------------------------------------------------------
 
-expect()->extend('toBeOne', function () {
-    return $this->toBe(1);
-});
-
-/*
-|--------------------------------------------------------------------------
-| Functions
-|--------------------------------------------------------------------------
-|
-| While Pest is very powerful out-of-the-box, you may have some testing code specific to your
-| project that you don't want to repeat in every file. Here you can also expose helpers as
-| global functions to help you to reduce the number of lines of code in your test files.
-|
-*/
-
-function something()
+/**
+ * Crea un usuario con el rol indicado y lo devuelve listo para actingAs().
+ */
+function userWithRole(string $roleName): User
 {
-    // ..
+    $role = Role::firstOrCreate(
+        ['name' => $roleName],
+        ['display_name' => ucfirst(str_replace('_', ' ', $roleName))]
+    );
+
+    $user = User::factory()->create();
+    $user->roles()->attach($role);
+
+    return $user;
+}
+
+/**
+ * Crea todos los roles del sistema (útil para tests de permisos).
+ */
+function seedRoles(): void
+{
+    $roles = [
+        ['name' => 'admin',         'display_name' => 'Administrador'],
+        ['name' => 'doctor',        'display_name' => 'Médico'],
+        ['name' => 'nurse',         'display_name' => 'Enfermero/a'],
+        ['name' => 'kinesiologist', 'display_name' => 'Kinesiólogo/a'],
+        ['name' => 'nutritionist',  'display_name' => 'Nutricionista'],
+        ['name' => 'social_worker', 'display_name' => 'Trabajador/a Social'],
+    ];
+
+    foreach ($roles as $role) {
+        Role::firstOrCreate(['name' => $role['name']], $role);
+    }
+}
+
+/**
+ * Crea un paciente con datos mínimos válidos.
+ */
+function createPatient(array $overrides = []): Patient
+{
+    return Patient::create(array_merge([
+        'first_name'       => 'Ana',
+        'last_name'        => 'García',
+        'dni'              => fake()->unique()->numerify('########'),
+        'birth_date'       => '1945-03-10',
+        'gender'           => 'female',
+        'admission_date'   => now()->toDateString(),
+        'mobility_status'  => 'normal',
+        'dependency_level' => 'low',
+        'status'           => 'active',
+    ], $overrides));
+}
+
+/**
+ * Crea un medicamento válido en el vademecum.
+ */
+function createMedication(array $overrides = []): Medication
+{
+    return Medication::create(array_merge([
+        'name'         => fake()->word() . ' ' . fake()->numerify('###mg'),
+        'generic_name' => fake()->word(),
+        'controlled'   => false,
+    ], $overrides));
+}
+
+/**
+ * Crea una habitación con una cama disponible y devuelve la cama.
+ */
+function createAvailableBed(): Bed
+{
+    $room = Room::create([
+        'number'   => fake()->unique()->numerify('##'),
+        'capacity' => 4,
+        'type'     => 'shared',
+        'status'   => 'available',
+    ]);
+
+    return Bed::create([
+        'room_id'    => $room->id,
+        'bed_number' => '1',
+        'status'     => 'available',
+    ]);
 }

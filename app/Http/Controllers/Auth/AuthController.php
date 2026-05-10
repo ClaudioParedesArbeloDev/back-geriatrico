@@ -13,7 +13,7 @@ use Illuminate\Auth\Events\PasswordReset;
 
 class AuthController extends Controller
 {
-    // funcion que maneja el login de usuarios
+  
     public function login(Request $request){
         $request->validate([
             'email' => 'required|email',
@@ -35,7 +35,6 @@ class AuthController extends Controller
         ]);
     }
 
-    // funcion que maneja el logout de usuarios
     public function logout(Request $request) {
 
         $request->user()->currentAccessToken()->delete();
@@ -43,7 +42,7 @@ class AuthController extends Controller
     return response()->json(['message' => 'Sesión cerrada']);
     }
 
-    // funcion que maneja el envio del link de reseteo de contraseña
+    
     public function sendResetLink(Request $request)
     {
         $request->validate([
@@ -60,7 +59,7 @@ class AuthController extends Controller
     }
 
 
-    // funcion que maneja el reseteo de contraseña
+   
    public function resetPassword(Request $request)
 {
     $request->validate([
