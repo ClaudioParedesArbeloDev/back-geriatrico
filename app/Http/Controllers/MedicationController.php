@@ -7,38 +7,53 @@ use Illuminate\Http\Request;
 
 class MedicationController extends Controller
 {
+    
     public function index(Request $request)
     {
         $query = Medication::query();
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('generic_name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%");
-            });
+        if ($request->filled('q')) {
+            $query->search($request->q);
         }
 
-        if ($request->filled('controlled')) {
-            $query->where('controlled', (bool) $request->controlled);
+        if ($request->filled('porcentaje')) {
+            $query->porcentaje((int) $request->porcentaje);
         }
 
-        return response()->json($query->get());
+        if ($request->filled('seccion')) {
+            $query->seccion($request->seccion);
+        }
+
+        if ($request->filled('laboratorio')) {
+            $query->where('laboratorio', 'like', '%' . $request->laboratorio . '%');
+        }
+
+        $perPage = min((int) ($request->per_page ?? 20), 100);
+
+        return response()->json(
+            $query->orderBy('principio_activo')->orderBy('nombre_comercial')->paginate($perPage)
+        );
     }
 
+    
+    public function show(Medication $medication)
+    {
+        return response()->json(
+            $medication->load('prescriptions.patient')
+        );
+    }
+
+    
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'code'               => 'nullable|string|max:50',
-            'name'               => 'required|string|max:255',
-            'generic_name'       => 'nullable|string|max:255',
-            'laboratory'         => 'nullable|string|max:255',
-            'presentation'       => 'nullable|string|max:255',
-            'concentration'      => 'nullable|string|max:100',
-            'drug_form'          => 'nullable|in:tablet,capsule,syrup,injectable,drops,cream,patch,suppository,inhaler,other',
-            'contraindications'  => 'nullable|string',
-            'controlled'         => 'boolean',
+            'nombre_comercial'     => 'required|string|max:250',
+            'presentacion'         => 'nullable|string|max:250',
+            'accion_farmacologica' => 'nullable|string|max:250',
+            'principio_activo'     => 'nullable|string|max:250',
+            'laboratorio'          => 'nullable|string|max:150',
+            'porcentaje'           => 'required|integer|in:40,70,100',
+            'seccion'              => 'nullable|string|max:100',
         ]);
 
         $medication = Medication::create($validated);
@@ -49,25 +64,16 @@ class MedicationController extends Controller
         ], 201);
     }
 
-    public function show(Medication $medication)
-    {
-        return response()->json(
-            $medication->load(['prescriptions.patient'])
-        );
-    }
-
     public function update(Request $request, Medication $medication)
     {
         $validated = $request->validate([
-            'code'               => 'sometimes|string|max:50',
-            'name'               => 'sometimes|string|max:255',
-            'generic_name'       => 'nullable|string|max:255',
-            'laboratory'         => 'nullable|string|max:255',
-            'presentation'       => 'nullable|string|max:255',
-            'concentration'      => 'nullable|string|max:100',
-            'drug_form'          => 'nullable|in:tablet,capsule,syrup,injectable,drops,cream,patch,suppository,inhaler,other',
-            'contraindications'  => 'nullable|string',
-            'controlled'         => 'boolean',
+            'nombre_comercial'     => 'sometimes|string|max:250',
+            'presentacion'         => 'nullable|string|max:250',
+            'accion_farmacologica' => 'nullable|string|max:250',
+            'principio_activo'     => 'nullable|string|max:250',
+            'laboratorio'          => 'nullable|string|max:150',
+            'porcentaje'           => 'sometimes|integer|in:40,70,100',
+            'seccion'              => 'nullable|string|max:100',
         ]);
 
         $medication->update($validated);
@@ -78,6 +84,7 @@ class MedicationController extends Controller
         ]);
     }
 
+    
     public function destroy(Medication $medication)
     {
         $medication->delete();

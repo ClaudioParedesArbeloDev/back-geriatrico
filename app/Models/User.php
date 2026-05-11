@@ -46,9 +46,7 @@ class User extends Authenticatable
         ];
     }
 
-    // -------------------------------------------------------
-    // Roles y especialidades
-    // -------------------------------------------------------
+   
 
     public function roles(): BelongsToMany
     {
@@ -70,9 +68,7 @@ class User extends Authenticatable
         return $this->belongsToMany(Specialty::class)->withTimestamps();
     }
 
-    // -------------------------------------------------------
-    // Acciones clínicas del profesional
-    // -------------------------------------------------------
+   
 
     public function diagnoses(): HasMany
     {

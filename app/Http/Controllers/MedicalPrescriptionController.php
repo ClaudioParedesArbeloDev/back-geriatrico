@@ -32,7 +32,7 @@ class MedicalPrescriptionController extends Controller
         $validated = $request->validate([
             'patient_id'    => 'required|exists:patients,id',
             'medication_id' => 'required|exists:medications,id',
-            'user_id'       => 'required|exists:users,id',
+            // user_id siempre desde auth, no del request
             'dose'          => 'required|string|max:100',
             'frequency'     => 'required|string|max:255',
             'route'         => 'nullable|string|max:100',
@@ -49,6 +49,7 @@ class MedicalPrescriptionController extends Controller
         $schedules = $validated['schedules'] ?? [];
         unset($validated['schedules']);
 
+        $validated['user_id'] = auth()->id();
         $prescription = MedicalPrescription::create($validated);
 
         if (! empty($schedules)) {

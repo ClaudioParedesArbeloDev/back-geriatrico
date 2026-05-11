@@ -26,6 +26,9 @@ class AuthController extends Controller
             return response()->json(['message' => 'Credenciales Incorrectas'], 401);
         }
 
+        
+        $user->load('roles');
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

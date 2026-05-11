@@ -39,7 +39,7 @@ class UserFactory extends Factory
         return $this->state(fn () => ['is_active' => false]);
     }
 
-    // Estado con matrícula (para médicos)
+  
     public function withLicense(): static
     {
         return $this->state(fn () => [
